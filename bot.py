@@ -27,7 +27,7 @@ def main_menu():
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
         InlineKeyboardButton("📦 Получить файл с таблицами", callback_data="files"),
-        InlineKeyboardButton("📊 Таблица оцифровки", callback_data="table"),
+        InlineKeyboardButton("📊 Таблица оцифровки", url="https://t.me/m/IwCldIQEZWIy"),
         InlineKeyboardButton("🌐 Полезные ссылки", callback_data="links"),
         InlineKeyboardButton("🔥 Консультация", url="https://t.me/m/gelSYGDAYzg6")
     )
