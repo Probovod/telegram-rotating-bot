@@ -33,7 +33,7 @@ def main_menu():
 async def start_handler(message: types.Message):
     text = (
         "👋 Привет! Меня зовут Александр.\n"
-        "Я менеджер по Валбрису с опытом более двух лет.\n"
+        "Я менеджер по WB с опытом более двух лет.\n"
         "Готов бесплатно поделиться полезными материалами."
     )
     await message.answer(text, reply_markup=main_menu())
