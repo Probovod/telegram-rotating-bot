@@ -1,3 +1,4 @@
+
 import logging
 from logging.handlers import RotatingFileHandler
 from aiogram import Bot, Dispatcher, types, executor
@@ -71,11 +72,7 @@ async def send_archive(callback_query: types.CallbackQuery):
     )
 
 @dp.callback_query_handler(lambda c: c.data == "table")
-async def send_table(callback_query: types.CallbackQuery):
-    await bot.send_message(
-        callback_query.from_user.id,
-        "📊 Таблица оцифровки находится здесь:\nhttps://t.me/m/IwCldIQEZWIy"
-    )
+async def handle_table(callback_query: types.CallbackQuery):
     logging.info(f"{callback_query.from_user.id} запросил таблицу оцифровки")
     await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
     await asyncio.sleep(120)
