@@ -11,8 +11,8 @@ ADMIN_ID = os.getenv('ADMIN_ID')
 # Настройка логгирования с ротацией
 log_handler = RotatingFileHandler(
     filename="bot.log",
-    maxBytes=1024 * 1024,  # 1 МБ
-    backupCount=5,         # Хранить до 5 архивов
+    maxBytes=1024 * 1024,
+    backupCount=5,
     encoding="utf-8"
 )
 logging.basicConfig(
@@ -43,8 +43,14 @@ async def send_welcome(message: types.Message):
 
 @dp.callback_query_handler(lambda c: c.data == 'get_files')
 async def send_files(callback_query: types.CallbackQuery):
-    await bot.send_message(callback_query.from_user.id, "Файл с таблицами сейчас недоступен на облаке. Напишите мне лично.")
-    logging.info(f"{callback_query.from_user.id} запросил файл с таблицами")
+    file_path = "files/tables.zip"
+    try:
+        with open(file_path, "rb") as f:
+            await bot.send_document(callback_query.from_user.id, f)
+        logging.info(f"{callback_query.from_user.id} получил tables.zip")
+    except Exception as e:
+        logging.error(f"Ошибка при отправке архива: {e}")
+        await bot.send_message(callback_query.from_user.id, "Не удалось отправить файл. Попробуйте позже.")
 
 @dp.callback_query_handler(lambda c: c.data == 'get_table')
 async def send_table(callback_query: types.CallbackQuery):
