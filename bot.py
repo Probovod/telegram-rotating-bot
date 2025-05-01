@@ -18,7 +18,11 @@ logging.basicConfig(
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
+
+import asyncio  # Добавим модуль для паузы
+
 # Главное меню
+
 def main_menu():
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
@@ -33,7 +37,7 @@ def main_menu():
 async def start_handler(message: types.Message):
     text = (
         "👋 Привет! Меня зовут Александр.\n"
-        "Я менеджер по WB с опытом более двух лет.\n"
+        "Я менеджер WB с опытом более двух лет.\n"
         "Готов бесплатно поделиться полезными материалами."
     )
     await message.answer(text, reply_markup=main_menu())
@@ -49,13 +53,25 @@ async def send_archive(callback_query: types.CallbackQuery):
     except Exception as e:
         await bot.send_message(callback_query.from_user.id, "⚠️ Не удалось отправить файл.")
         logging.error(f"Ошибка при отправке архива: {e}")
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
+        await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
+    await asyncio.sleep(30)
+    await bot.send_message(
+        callback_query.from_user.id,
+        "Как тебе материалы? Давай я помогу разобраться, [напиши мне](https://t.me/m/gelSYGDAYzg6)",
+        parse_mode="Markdown"
+    )
 
 @dp.callback_query_handler(lambda c: c.data == "table")
 async def send_table_info(callback_query: types.CallbackQuery):
     await bot.send_message(callback_query.from_user.id, "🗂 Таблица оцифровки сейчас недоступна. Напишите мне лично.")
     logging.info(f"{callback_query.from_user.id} запросил таблицу оцифровки")
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
+        await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
+    await asyncio.sleep(30)
+    await bot.send_message(
+        callback_query.from_user.id,
+        "Как тебе материалы? Давай я помогу разобраться, [напиши мне](https://t.me/m/gelSYGDAYzg6)",
+        parse_mode="Markdown"
+    )
 
 @dp.callback_query_handler(lambda c: c.data == "links")
 async def send_links(callback_query: types.CallbackQuery):
@@ -66,7 +82,13 @@ async def send_links(callback_query: types.CallbackQuery):
     )
     await bot.send_message(callback_query.from_user.id, text, parse_mode="Markdown")
     logging.info(f"{callback_query.from_user.id} запросил ссылки")
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
+        await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
+    await asyncio.sleep(30)
+    await bot.send_message(
+        callback_query.from_user.id,
+        "Как тебе материалы? Давай я помогу разобраться, [напиши мне](https://t.me/m/gelSYGDAYzg6)",
+        parse_mode="Markdown"
+    )
 
 async def notify_admin_on_startup(dispatcher: Dispatcher):
     if ADMIN_ID:
