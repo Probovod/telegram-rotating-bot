@@ -29,11 +29,6 @@ def main_menu():
     )
     return kb
 
-def back_to_menu():
-    return InlineKeyboardMarkup().add(
-        InlineKeyboardButton("🔙 В главное меню", callback_data="back_to_menu")
-    )
-
 @dp.message_handler(commands=["start"])
 async def start_handler(message: types.Message):
     text = (
@@ -43,10 +38,6 @@ async def start_handler(message: types.Message):
     )
     await message.answer(text, reply_markup=main_menu())
     logging.info(f"Старт: {message.from_user.id}")
-
-@dp.callback_query_handler(lambda c: c.data == "back_to_menu")
-async def go_back_menu(callback_query: types.CallbackQuery):
-    await bot.send_message(callback_query.from_user.id, "📋 Главное меню:", reply_markup=main_menu())
 
 @dp.callback_query_handler(lambda c: c.data == "files")
 async def send_archive(callback_query: types.CallbackQuery):
@@ -62,7 +53,6 @@ async def send_archive(callback_query: types.CallbackQuery):
     except Exception as e:
         await bot.send_message(callback_query.from_user.id, "⚠️ Не удалось отправить файл.")
         logging.error(f"Ошибка при отправке архива: {e}")
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
     await asyncio.sleep(120)
     await bot.send_message(
         callback_query.from_user.id,
@@ -73,11 +63,7 @@ async def send_archive(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(lambda c: c.data == "table")
 async def handle_table(callback_query: types.CallbackQuery):
     logging.info(f"{callback_query.from_user.id} нажал на 'Таблица оцифровки'")
-
-    # Отправляем только ссылку
     await bot.send_message(callback_query.from_user.id, "https://t.me/m/IwCldIQEZWIy")
-
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
     await asyncio.sleep(120)
     await bot.send_message(
         callback_query.from_user.id,
@@ -94,7 +80,6 @@ async def send_links(callback_query: types.CallbackQuery):
     )
     await bot.send_message(callback_query.from_user.id, text, parse_mode="Markdown")
     logging.info(f"{callback_query.from_user.id} запросил ссылки")
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
     await asyncio.sleep(120)
     await bot.send_message(
         callback_query.from_user.id,
