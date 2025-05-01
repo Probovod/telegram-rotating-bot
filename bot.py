@@ -72,7 +72,11 @@ async def send_archive(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data == "table")
 async def handle_table(callback_query: types.CallbackQuery):
-    logging.info(f"{callback_query.from_user.id} запросил таблицу оцифровки")
+    logging.info(f"{callback_query.from_user.id} нажал на 'Таблица оцифровки'")
+
+    # Отправляем только ссылку
+    await bot.send_message(callback_query.from_user.id, "https://t.me/m/IwCldIQEZWIy")
+
     await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
     await asyncio.sleep(120)
     await bot.send_message(
