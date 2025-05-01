@@ -23,11 +23,16 @@ def main_menu():
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
         InlineKeyboardButton("📦 Получить файл с таблицами", callback_data="files"),
-        InlineKeyboardButton("📊 Таблица оцифровки", url="https://t.me/m/IwCldIQEZWIy"),
+        InlineKeyboardButton("📊 Таблица оцифровки", callback_data="table"),
         InlineKeyboardButton("🌐 Полезные ссылки", callback_data="links"),
         InlineKeyboardButton("🔥 Консультация", url="https://t.me/m/gelSYGDAYzg6")
     )
     return kb
+
+def back_to_menu():
+    return InlineKeyboardMarkup().add(
+        InlineKeyboardButton("🔙 В главное меню", callback_data="back_to_menu")
+    )
 
 @dp.message_handler(commands=["start"])
 async def start_handler(message: types.Message):
@@ -39,8 +44,16 @@ async def start_handler(message: types.Message):
     await message.answer(text, reply_markup=main_menu())
     logging.info(f"Старт: {message.from_user.id}")
 
+@dp.callback_query_handler(lambda c: c.data == "back_to_menu")
+async def go_back_menu(callback_query: types.CallbackQuery):
+    await bot.send_message(callback_query.from_user.id, "📋 Главное меню:", reply_markup=main_menu())
+
 @dp.callback_query_handler(lambda c: c.data == "files")
 async def send_archive(callback_query: types.CallbackQuery):
+    await bot.send_message(callback_query.from_user.id,
+        "Дорогой друг, направляю тебе архив с очень полезными материалами, например, как просчет юнит экономики или работа с ценами товаров. "
+        "Для того, чтобы скачать, нажми на архив. В нем будет Excel формата таблицы. Был рад тебе помочь."
+    )
     file_path = "files/tables.zip"
     try:
         with open(file_path, "rb") as f:
@@ -49,8 +62,23 @@ async def send_archive(callback_query: types.CallbackQuery):
     except Exception as e:
         await bot.send_message(callback_query.from_user.id, "⚠️ Не удалось отправить файл.")
         logging.error(f"Ошибка при отправке архива: {e}")
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
-    await asyncio.sleep(60)
+    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
+    await asyncio.sleep(120)
+    await bot.send_message(
+        callback_query.from_user.id,
+        "Как тебе материалы? Давай я помогу разобраться, [напиши мне](https://t.me/m/gelSYGDAYzg6)",
+        parse_mode="Markdown"
+    )
+
+@dp.callback_query_handler(lambda c: c.data == "table")
+async def send_table(callback_query: types.CallbackQuery):
+    await bot.send_message(
+        callback_query.from_user.id,
+        "📊 Таблица оцифровки находится здесь:\nhttps://t.me/m/IwCldIQEZWIy"
+    )
+    logging.info(f"{callback_query.from_user.id} запросил таблицу оцифровки")
+    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
+    await asyncio.sleep(120)
     await bot.send_message(
         callback_query.from_user.id,
         "Как тебе материалы? Давай я помогу разобраться, [напиши мне](https://t.me/m/gelSYGDAYzg6)",
@@ -66,8 +94,8 @@ async def send_links(callback_query: types.CallbackQuery):
     )
     await bot.send_message(callback_query.from_user.id, text, parse_mode="Markdown")
     logging.info(f"{callback_query.from_user.id} запросил ссылки")
-    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
-    await asyncio.sleep(60)
+    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=back_to_menu())
+    await asyncio.sleep(120)
     await bot.send_message(
         callback_query.from_user.id,
         "Как тебе материалы? Давай я помогу разобраться, [напиши мне](https://t.me/m/gelSYGDAYzg6)",
