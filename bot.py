@@ -1,4 +1,3 @@
-
 import logging
 from logging.handlers import RotatingFileHandler
 from aiogram import Bot, Dispatcher, types, executor
@@ -8,13 +7,8 @@ import os
 API_TOKEN = os.getenv('TELEGRAM_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
 
-# Настройка логгирования с ротацией
-log_handler = RotatingFileHandler(
-    filename="bot.log",
-    maxBytes=1024 * 1024,
-    backupCount=5,
-    encoding="utf-8"
-)
+# Логирование с ротацией
+log_handler = RotatingFileHandler("bot.log", maxBytes=1024*1024, backupCount=5, encoding="utf-8")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -24,55 +18,62 @@ logging.basicConfig(
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-@dp.message_handler(commands=['start'])
-async def send_welcome(message: types.Message):
-    welcome_text = (
-        "Привет! Меня зовут Александр. Хотел бы познакомиться с тобой подробнее.\n\n"
-        "Я являюсь менеджером и занимаюсь Валбрисом больше двух лет.\n"
-        "Хочу поделиться с тобой полезными материалами — совершенно бесплатно!"
+# Главное меню
+def main_menu():
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(
+        InlineKeyboardButton("📦 Получить файл с таблицами", callback_data="files"),
+        InlineKeyboardButton("📊 Таблица оцифровки", callback_data="table"),
+        InlineKeyboardButton("🌐 Полезные ссылки", callback_data="links"),
+        InlineKeyboardButton("🔥 Консультация", url="https://t.me/m/gelSYGDAYzg6")
     )
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        InlineKeyboardButton("Получить файл с таблицами", callback_data='get_files'),
-        InlineKeyboardButton("Получить таблицу оцифровки", callback_data='get_table'),
-        InlineKeyboardButton("Получить полезные ссылки", callback_data='get_links'),
-        InlineKeyboardButton("Записаться на консультацию", url='https://t.me/alex_valberis')
-    )
-    await message.answer(welcome_text, reply_markup=keyboard)
-    logging.info(f"/start от пользователя {message.from_user.id}")
+    return kb
 
-@dp.callback_query_handler(lambda c: c.data == 'get_files')
-async def send_files(callback_query: types.CallbackQuery):
+@dp.message_handler(commands=["start"])
+async def start_handler(message: types.Message):
+    text = (
+        "👋 Привет! Меня зовут Александр.\n"
+        "Я менеджер по Валбрису с опытом более двух лет.\n"
+        "Готов бесплатно поделиться полезными материалами."
+    )
+    await message.answer(text, reply_markup=main_menu())
+    logging.info(f"Старт: {message.from_user.id}")
+
+@dp.callback_query_handler(lambda c: c.data == "files")
+async def send_archive(callback_query: types.CallbackQuery):
     file_path = "files/tables.zip"
     try:
         with open(file_path, "rb") as f:
             await bot.send_document(callback_query.from_user.id, f)
-        logging.info(f"{callback_query.from_user.id} получил tables.zip")
+        logging.info(f"{callback_query.from_user.id} получил архив")
     except Exception as e:
+        await bot.send_message(callback_query.from_user.id, "⚠️ Не удалось отправить файл.")
         logging.error(f"Ошибка при отправке архива: {e}")
-        await bot.send_message(callback_query.from_user.id, "Не удалось отправить файл. Попробуйте позже.")
+    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
 
-@dp.callback_query_handler(lambda c: c.data == 'get_table')
-async def send_table(callback_query: types.CallbackQuery):
-    await bot.send_message(callback_query.from_user.id, "Таблица оцифровки сейчас недоступна. Напишите мне лично.")
+@dp.callback_query_handler(lambda c: c.data == "table")
+async def send_table_info(callback_query: types.CallbackQuery):
+    await bot.send_message(callback_query.from_user.id, "🗂 Таблица оцифровки сейчас недоступна. Напишите мне лично.")
     logging.info(f"{callback_query.from_user.id} запросил таблицу оцифровки")
+    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
 
-@dp.callback_query_handler(lambda c: c.data == 'get_links')
+@dp.callback_query_handler(lambda c: c.data == "links")
 async def send_links(callback_query: types.CallbackQuery):
     text = (
-        "Вот несколько полезных ссылок:\n"
-        "1. [Wildberries Seller](https://seller.wildberries.ru/)\n"
-        "2. [WB Guru](https://wb.guru)"
+        "🔗 Полезные ссылки:\n"
+        "• [Wildberries Seller](https://seller.wildberries.ru/)\n"
+        "• [WB Guru](https://wb.guru)"
     )
     await bot.send_message(callback_query.from_user.id, text, parse_mode="Markdown")
-    logging.info(f"{callback_query.from_user.id} запросил полезные ссылки")
+    logging.info(f"{callback_query.from_user.id} запросил ссылки")
+    await bot.send_message(callback_query.from_user.id, "🔙 Вернуться в меню", reply_markup=main_menu())
 
 async def notify_admin_on_startup(dispatcher: Dispatcher):
     if ADMIN_ID:
         try:
-            await bot.send_message(int(ADMIN_ID), "✅ Бот успешно запущен на Render!")
+            await bot.send_message(int(ADMIN_ID), "✅ Бот запущен. Главное меню готово.")
         except Exception as e:
-            logging.error(f"Не удалось отправить сообщение админу: {e}")
+            logging.error(f"Ошибка при уведомлении: {e}")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True, on_startup=notify_admin_on_startup)
