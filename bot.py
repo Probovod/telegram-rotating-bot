@@ -23,13 +23,7 @@ def main_menu():
 
 @dp.message_handler(commands=["start"])
 async def start_handler(message: types.Message):
-    text = (
-        "👋 Привет! Меня зовут Александр.
-"
-        "Занимаюсь ВБ больше двух лет.
-"
-        "Выбери вариант меню, который тебе необходим:"
-    )
+    text = "👋 Привет! Меня зовут Александр. Занимаюсь ВБ больше двух лет. Выбери вариант меню, который тебе необходим:"
     await message.answer(text, reply_markup=main_menu())
     logging.info(f"Пользователь {message.from_user.id} запустил бота")
 
