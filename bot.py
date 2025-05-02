@@ -57,3 +57,19 @@ async def notify_admin(dispatcher: Dispatcher):
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True, on_startup=notify_admin)
+
+# Вставить в конец bot.py
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class HealthCheck(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running")
+
+def run_http_server():
+    server = HTTPServer(('0.0.0.0', 10000), HealthCheck)
+    server.serve_forever()
+
+threading.Thread(target=run_http_server, daemon=True).start()
