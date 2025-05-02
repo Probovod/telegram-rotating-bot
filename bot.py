@@ -55,10 +55,8 @@ async def notify_admin(dispatcher: Dispatcher):
         except Exception as e:
             logging.error(f"Не удалось уведомить админа: {e}")
 
-if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True, on_startup=notify_admin)
 
-# Вставить в конец bot.py
+# Заглушка для порта, чтобы Render не ругался
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -73,3 +71,7 @@ def run_http_server():
     server.serve_forever()
 
 threading.Thread(target=run_http_server, daemon=True).start()
+
+if __name__ == "__main__":
+    executor.start_polling(dp, skip_updates=True, on_startup=notify_admin)
+
