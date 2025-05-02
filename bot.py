@@ -1,60 +1,73 @@
+
 import logging
 import os
-import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp import web
+from aiogram.utils.executor import start_webhook
 from dotenv import load_dotenv
 
+# Загрузка переменных окружения
 load_dotenv()
 
-API_TOKEN = os.getenv("TELEGRAM_TOKEN")
-WEBHOOK_PATH = "/webhook"
-WEBHOOK_URL = f"{os.getenv('RENDER_EXTERNAL_URL')}{WEBHOOK_PATH}"
+API_TOKEN = os.getenv('TELEGRAM_TOKEN')
+WEBHOOK_HOST = os.getenv('RENDER_EXTERNAL_URL') or os.getenv('WEBHOOK_HOST')
+WEBHOOK_PATH = f'/webhook/{API_TOKEN}'
+WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
-logging.basicConfig(level=logging.INFO)
+WEBAPP_HOST = '0.0.0.0'
+WEBAPP_PORT = int(os.getenv('PORT', default=8000))
+
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-def main_menu():
+logging.basicConfig(level=logging.INFO)
+
+def get_main_menu():
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
         InlineKeyboardButton("🔥 Консультация", url="https://t.me/m/gelSYGDAYzg6"),
-        InlineKeyboardButton("📦 Получить архив с материалами", callback_data="archive"),
-        InlineKeyboardButton("📊 Получить таблицу оцифровки", url="https://t.me/m/IwCldIQEZWIy")
+        InlineKeyboardButton("📦 Получить архив", callback_data="archive"),
+        InlineKeyboardButton("📊 Таблица оцифровки", url="https://t.me/m/IwCldIQEZWIy")
     )
     return kb
 
-@dp.message_handler(commands=["start"])
-async def handle_start(message: types.Message):
-    await message.answer(
-        "👋 Привет, меня зовут Александр.
-"
-        "Занимаюсь ВБ больше двух лет.
-"
-        "Выбери вариант меню, который тебе необходим:",
-        reply_markup=main_menu()
-    )
+@dp.message_handler(commands=['start'])
+async def start_command(message: types.Message):
     logging.info(f"Пользователь {message.from_user.id} запустил бота")
-
-@dp.callback_query_handler(lambda c: c.data == "archive")
-async def handle_archive(callback_query: types.CallbackQuery):
-    await bot.send_message(callback_query.from_user.id,
-        "Дорогой друг, направляю тебе архив с полезными материалами. Нажми на файл, чтобы скачать."
+    await message.answer(
+        "👋 Привет, меня зовут Александр.\n"
+        "Занимаюсь Wildberries более двух лет. Выбери, что тебе интересно:",
+        reply_markup=get_main_menu()
     )
+
+@dp.callback_query_handler(lambda c: c.data == 'archive')
+async def send_archive(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    logging.info(f"{user_id} получил архив")
+    await bot.send_message(user_id, "Сейчас отправлю полезные материалы!")
     file_path = "files/tables.zip"
     try:
-        with open(file_path, "rb") as f:
-            await bot.send_document(callback_query.from_user.id, f)
-        logging.info(f"{callback_query.from_user.id} получил архив")
+        with open(file_path, "rb") as doc:
+            await bot.send_document(user_id, doc)
     except Exception as e:
-        await bot.send_message(callback_query.from_user.id, "⚠️ Не удалось отправить файл.")
-        logging.error(f"Ошибка при отправке архива: {e}")
+        logging.error(f"Ошибка отправки архива: {e}")
+        await bot.send_message(user_id, "Не удалось отправить файл 😔")
 
-    await asyncio.sleep(120)
-    await bot.send_message(
-        callback_query.from_user.id,
-        "Как тебе материалы? Давай я помогу разобраться, [напиши мне](https://t.me/m/gelSYGDAYzg6)",
-        parse_mode="Markdown"
+async def on_startup(dp):
+    await bot.set_webhook(WEBHOOK_URL)
+    logging.info(f"Webhook установлен: {WEBHOOK_URL}")
+
+async def on_shutdown(dp):
+    logging.warning("Отключение вебхука...")
+    await bot.delete_webhook()
+
+if __name__ == '__main__':
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        skip_updates=True,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT
     )

@@ -1,13 +1,12 @@
 
 services:
   - type: web
-    name: telegram-bot
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python bot.py
-    plan: free
+    name: telegram-webhook-bot
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python bot.py"
     envVars:
       - key: TELEGRAM_TOKEN
-        value: 7501713681:AAE5d6FetzGu6CQO_oiv_0U6EPrRXESGwvA
-      - key: ADMIN_ID
-        value: 123456789
+        sync: false
+      - key: WEBHOOK_HOST
+        value: https://telegram-rotating-bot.onrender.com
